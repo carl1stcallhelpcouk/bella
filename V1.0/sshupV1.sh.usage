@@ -1,0 +1,19 @@
+Usage :
+  ${ME} [-o | --host <host>] [-d | --debug] [-h | --help] [-q | --quiet]
+        [-v | --verbose] [-w | --wait] [-c | --connect] [-u | --wakeup]
+        [-t | --timeout <timeout>]"
+  
+Options :
+  -o | --host <host>      Check / Connect to <host>.
+                            *mandatory if not configured in ${SETFILE}.
+  -d | --debug            Output options.
+  -h | --help             Display this usage information.
+  -q | --quiet            Run silently / Supress output.
+  -v | --verbose          Verbose output.
+  -w | --wait             Wait for host to become available.
+  -c | --connect          Connect to host when / if available.
+  -u | --wakeup           Attemt to wakeup host by sending magic packet.
+                            **wakeup script required.
+  -t | --timeout          How long to wait for host to become available in
+                          seconds.
+

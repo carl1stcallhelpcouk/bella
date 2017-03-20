@@ -1,0 +1,158 @@
+#!/bin/bash
+
+#
+# Get current directory
+#
+
+DIR="${BASH_SOURCE%/*}"
+if [[ ! -d "$DIR" ]]; then 
+    DIR="$PWD"
+fi
+
+#
+# Source standard functions and options
+#
+. "$DIR/1st_incl.sh"
+
+
+#
+# Read command line
+#
+
+fnReadCommandline "$@"
+
+if [ "${FASTCONNECT}" == "true" ] && [ "${CONNECT}" == "true" ] ; then
+    if [ $VERBOSE == "true" ] ; then
+        printf "Host = ${HOST} : Attempting Fast Connect\n"
+    fi
+
+    fnConnectToHost
+fi
+
+if [ "${CONNECTED}" == "false" ] ; then
+#
+# Check host state
+#
+    fnCheckHostState
+
+#
+# wakeup host
+#
+    fnWakeupHost
+
+#
+# Main Connect
+#
+    if [ $WAIT == "true" ] && [ $CONNECTED == "false"  ] ; then
+
+        TOREACHED="false"
+        
+        while [ $HOSTUP == false ] && [ $TOREACHED == "false" ] && [ "${CONNECTED}" == "false" ] ; do
+            RESULTS="$(ssh -o ConnectTimeout=3 $HOST echo "OK" 2>&1 >/tmp/sshup.out;exit)"
+            RET=$?
+        
+            if [ $RET -eq 0 ] ; then
+                HOSTUP="true"
+                RESULTS="$HOST is up"
+            else
+                HOSTUP="false"
+                RESULTS="$HOST is down"
+            fi
+
+            duration=$SECONDS
+
+            RESULTS_CLEAN="$(echo $RESULTS | tr -d '\r')"
+
+            if [ $QUIET == "false" ] ; then
+
+                if [ "$LASTRES" != "$RESULTS_CLEAN" ] && [ "$VERBOSE" == "true" ] ; then
+
+                    if [ $ATTEMPT -gt 0 ] ; then
+                        printf "\n"
+                    fi
+
+                fi
+
+        	    printf "Running time = "
+                displaytime $duration
+                printf "  Return = $RET  Result = ${RESULTS_CLEAN}      \r"
+                LASTRES=$RESULTS_CLEAN
+            fi
+
+            if [ $TIMEOUT -gt 0 ] ; then
+                if [ $SECONDS -ge $TIMEOUT ] ; then
+                    TOREACHED="true"
+                    printf "\nTimeout Reached\n"
+                fi
+            fi
+
+            let ATTEMPT+=1
+
+            if [ $CONNECT == "true" ] && [ $HOSTUP == "true" ] && [ $TOREACHED != "true" ] ; then
+
+                fnConnectToHost
+
+                if [ $RET -ne 255 ] ; then
+                    HOSTUP="false"
+                else
+                    HOSTUP="true"
+                fi
+
+                if [ $VERBOSE == "true" ] && [ $RET -ne 0 ] ; then
+                    printf "$HOST connect Failed - $RET\n"
+                fi
+            fi
+
+        done
+    else
+        RESULTS="$(ssh -o ConnectTimeout=3 $HOST echo "OK" 2>&1 >/tmp/sshup.out;exit)"
+        RET=$?
+        duration=$SECONDS
+
+        if [ $RET -eq 0 ] ; then 
+            RESULTS="$HOST is up"
+            HOSTUP="true"
+        fi
+
+        RESULTS_CLEAN="$(echo $RESULTS  | tr -d '\r')"
+
+        if [ $QUIET == "false" ] ; then
+    	   printf "Running time = "
+            displaytime $duration
+        	printf "  Return = $RET  Result = ${RESULTS_CLEAN}      \r"
+        fi
+        
+        if [ $TIMEOUT -gt 0 ] ; then
+            if [ $SECONDS -ge $TIMEOUT ] ; then
+                TOREACHED="true"
+                RET=0
+                printf "\nTimeout Reached\n"
+            fi
+        fi
+        let ATTEMPT+=1
+
+        if [ $CONNECT == "true" ] && [ $HOSTUP == "true" ] && [ $TOREACHED != "true" ] ; then
+
+            fnConnectToHost
+
+            if [ $RET -ne 255 ] ; then
+                HOSTUP="false"
+            else
+                HOSTUP="true"
+            fi
+
+            if [ $VERBOSE == "true" ] && [ $RET -ne 0 ] ; then
+                printf "$HOST connect Failed - $RET\n"
+            fi
+        fi
+    fi
+
+    if [ $VERBOSE == "true" ] && [ $RET -eq 0 ] ; then
+        printf "\nOutput = "
+        cat /tmp/sshup.out
+    else
+        printf "\n"
+    fi
+fi
+
+pause "Press [Enter] to continue .."

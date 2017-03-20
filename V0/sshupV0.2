@@ -1,0 +1,176 @@
+#!/bin/bash
+
+#
+# Function to get the current script directory
+#
+fnGetScripsDir () 
+{
+    BINDIR="${BASH_SOURCE%/*}"
+    if [[ ! -d "${BINDIR}" ]]; then 
+        BINDIR="${PWD}"
+    fi
+}
+
+fnGetSettingFile ()
+{
+    if [ -f /etc/sshup.conf ] && [ -r /etc/sshup.conf ] ; then
+        SETFILE="/etc/sshup.conf"
+    else
+        SETFILE="**NOTREADABLE**"
+    fi
+}
+
+#
+# Function to get options from config file.
+#
+fnGetOption () 
+{
+    awk -v section="$2" -v variable="$3" -v odefault="$4" '
+        $0 == "[" section "]" { in_section = 1; next }
+        in_section && $1 == variable {
+            $1=""
+            $2=""
+            sub(/^[[:space:]]+/, "")
+            print
+            exit 
+        }
+        in_section && $1 == "" {
+            # we are at a blank line without finding the var in the section
+            print odefault
+            exit
+        }
+    ' "$1"
+}
+
+#
+# Function to display usgage information
+#
+fnsshupV2Help() 
+{
+    ME="$(basename "$0")"
+    usageFile="${BINDIR}/${ME}.usage" #SETFILE
+    sed -e "s:\${ME}:${ME}:" -e "s:\${SETFILE}:${SETFILE}:" "${usageFile}"
+#    echo `cat "${usageFile}"`
+
+#    cat<<fnsshupV2HelpEOT
+#    $(cat "${usageFile}")
+#fnsshupV2HelpEOT
+     
+#    while read line
+#    do
+#        printf "%s\n" "${line}"
+#    done < "${usageFile}"
+#    envsubst < "${usageFile}"
+    exit 0
+}
+
+fnGetOpsSshupV2() 
+{
+    OPTLIND=1
+    while getopts_long "o:dhqvwcut:" opt \
+        host required_argument \
+        debug no_argument \
+        help no_argument \
+        quiet no_argument \
+        verbose no_argument \
+        wait no_argument \
+        connect no_argument \
+        wakeup no_argument \
+        timeout required_argument "" "$@"
+    do
+        case "$opt" in
+        o|host) 
+            optHost=$OPTLARG;;
+        d|debug)
+            optDebug=true;;
+        h|help)
+            optHelp=true;;
+        q|quiet)
+            optQuiet=true;;
+        v|verbose)
+            optVerbose=true;;
+        w|wait)
+            optWait=true;;
+        c|connect)
+            optConnect=true;;
+        u|wakeup)
+            optWakeup=true;;
+        t|timeout)
+            optTimeout=$OPTLARG;;
+        :)
+            printf >&2 '%s: %s\n' "${0##*/}" "$OPTLERR"
+            optHelp=true
+            exit 1;;
+        esac
+    done
+    shift "$(($OPTLIND - 1))"
+}
+
+#
+# Function to display debug information#
+#
+fnDisplayDebugInfo()
+{
+    cat<<debugEOF
+
+optHost=$optHost
+optDebug=$optDebug
+optHelp=$optHelp
+optQuiet=$optQuiet
+optVerbose=$optVerbose
+optWait=$optWait
+optConnect=$optConnect
+optWakeup=$optWakeup
+optTimeout=$optTimeout
+
+debugEOF
+}
+
+#
+# Get current script directory $BINDIR
+#
+fnGetScripsDir
+fnGetSettingFile
+
+#
+# Source some functions we'll be using.
+#
+. "${BINDIR}/getopts_long.sh"
+. "${BINDIR}/read_ini.sh"
+
+#
+# Set default options
+#
+optHost="**UNSET!!**"
+optHelp=false
+optQuiet=false
+optVerbose=false
+optWait=false
+optConnect=false
+optWakeup=false
+optTimeout=30
+optDebug=false
+
+#
+# If settings file found, source it
+#
+if [ "${SETFILE}" != "**NOTREADABLE**" ] ; then
+    read_ini "${SETFILE}" sshup --booleans 0 --prefix opt --nosect
+fi
+
+fnGetOpsSshupV2 "$@"
+
+if [ $optDebug = true ] ; then
+    fnDisplayDebugInfo
+fi
+
+if [ ! $optHelp ] ; then
+    if [ $optHost = "**UNSET!!**" ]  ; then
+        printf "%s\n" "option -o or --host is required"
+        optHelp=true
+    fi
+fi
+
+if [ $optHelp = true ] ; then
+    fnsshupV2Help "$@"
+fi

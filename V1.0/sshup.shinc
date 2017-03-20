@@ -1,0 +1,900 @@
+#!/bin/bash
+
+#==== sshup Include ===========================================================#
+#                                                                              #
+# FILE:         sshup.shinc                                                    #
+#                                                                              #
+# DESCRIPTION:  This file should include all the constants and functions       #
+#               required by the sshup script.                                  #
+#                                                                              #
+# BUGS:         Report all bugs and/or sugestions to bugs@1stcallhelp.co.uk.   #
+#                                                                              #
+# AUTHOR:       <Carl McAlwane>carl@1stcallhelp.co.uk                          #
+#                                                                              #
+# COMPANY:      1stcallhelp.co.uk                                              #
+#                                                                              #
+# VERSION:      1.0.1                                                            #
+#                                                                              #
+# CREATED:      11.05.2016                                                     #
+#                                                                              #
+# REVISION:     1.0.1.2017                                                     #
+#                                                                              #
+# COPYRIGHT:    (C)2000-2017 1st Call Group.  All rights reserved.             #
+#                                                                              #
+# TODO:         1. Move all constants to here.                                 #
+#               2. Move all functions to here.                                 #
+#               3. Use paramiters instead of global variables.                 #
+#               4. Use return (echo -e ${result}) instead of global variables  #
+#               5. Standardise variable and constant names.                    #
+#               6. Standardise how variables are used ie. $var to "${var}"     #
+#               7. Typeset and localise variables and readonly constants.      # 
+#               8. Standardise comments.                                       #
+#                                                                              #
+#==============================================================================#
+#
+# Define some constants.
+#
+    declare -rx DBG_LVL_NETWORK=75
+    declare -rx DBG_LVL_OUTPUT=50
+    declare -rx DBG_LVL_LOW=25
+    declare -rx DBG_LVL_ALL=99
+    declare -rx DBG_LVL_ABORT=125
+
+    declare -rix E_DEBUG_BREAKPOINT=77
+    declare -rix E_SHOULD_NEVER_GET_HERE=99
+#
+# Define colour escape sequences.
+#
+    declare -rx BLACK=$(tput setaf 0)
+    declare -rx RED=$(tput setaf 1)
+    declare -rx GREEN=$(tput setaf 2)
+    declare -rx YELLOW=$(tput setaf 3)
+    declare -rx LIME_YELLOW=$(tput setaf 190)
+    declare -rx POWDER_BLUE=$(tput setaf 153)
+    declare -rx BLUE=$(tput setaf 4)
+    declare -rx MAGENTA=$(tput setaf 5)
+    declare -rx CYAN=$(tput setaf 6)
+    declare -rx WHITE=$(tput setaf 7)
+    declare -rx BRIGHT=$(tput bold)
+    declare -rx NORMAL=$(tput sgr0)
+    declare -rx BLINK=$(tput blink)
+    declare -rx REVERSE=$(tput smso)
+    declare -rx UNDERLINE=$(tput smul)
+#
+# Declare some global variables
+#
+    declare -x rcs="" 
+    declare -xi rc=0
+    declare -i dbRet
+
+# === sshup Include Functions =================================================#
+# NAME:         sshup.shinc                                                    #
+#                                                                              #
+# DESCRIPTION:  This file should include all the functions required by the     #
+#               sshup script.                                                  #
+#                                                                              #
+# PARAMETERS:   None.                                                          #
+# TODO:         1. Standardise comment format                                  #
+#                                                                              #
+#               2. Convert functions to accept paramiters and return value in  #
+#               standardised way.                                              #
+#                                                                              #
+#               3. Develop a test script to aid in the testing of these        #
+#               functions.                                                     #
+#                                                                              #
+#               4. Build in some standard error handling.                      #
+#                                                                              #
+#               5. Thouroghly test these functions.                            #
+#                                                                              #
+#               6. Split out the file into generic functions and functions     #
+#               that are specific to sshup                                     #
+#                                                                              #
+#==============================================================================#
+
+#=== FUNCTION =================================================================#
+# NAME: fnDebug                                                                #
+# DESCRIPTION: Function to output debug information to stderr.                 #
+# PARAMETERS: int debugLevel boolean breakpoint                                #
+#==============================================================================#
+declare -fx fnDebug
+
+#=== FUNCTION =================================================================#
+# NAME: fnIsHostReachable                                                      #
+# DESCRIPTION: Function to check if host is reachable via ping.                #
+# PARAMETERS: host                                                             #
+#==============================================================================#
+declare -fx fnIsHostReachable
+
+#=== FUNCTION =================================================================#
+# NAME:         fnOutput                                                       #
+#                                                                              #
+# DESCRIPTION:  Function output <stdin> to :-                                  #
+#               1.  If logging enabled, output to logfile.                     #
+#                                                                              #
+#               2.  If not running quietly and not verbose detail, output to   #
+#               <stdout>                                                       #
+#                                                                              #
+#               3.  If running verbosely, output to <stdout>.                  #
+#                                                                              #
+# PARAMETERS:   <stdin> = Text to output.                                      #
+#               ${1}    = Verbose detail (true / false).                       #
+#               ${2}    = Logging (true / false).                              #
+#               ${3}    = Quiet (true / false).                                #
+#               ${4}    = Verbose enabled (true / false).                      #
+#               ${5}    = Logfile.                                             #
+#                                                                              #
+# RETURNS:      nothing.                                                       #
+#                                                                              #
+# TODO:         1.  Format log output with date/time, bin name, etc.           #
+#               2.  Add colour format to logfile                               #
+#               3.  Make paramiters optional. Perhaps use getopts.             #
+#==============================================================================#
+declare -fx fnOutput
+
+#=== FUNCTION =================================================================#
+# NAME: fnIsHostConnectable                                                    #
+# DESCRIPTION: Function to check if host is connectable via ssh.               #
+# PARAMETERS: host                                                             #
+#==============================================================================#
+declare -fx fnIsHostConnectable
+
+#=== FUNCTION =================================================================#
+# NAME: fnPingHost                                                             #
+# DESCRIPTION: Function to ping a host                                         #
+# PARAMETERS: host                                                             #
+#==============================================================================#
+declare -fx fnPingHost
+
+#=== FUNCTION =================================================================#
+# NAME: fnSshHost                                                              #
+# DESCRIPTION: Function to ping a host                                         #
+# PARAMETERS: host                                                             #
+#==============================================================================#
+declare -fx fnSshHost
+
+#=== FUNCTION =================================================================#
+# NAME: fnGetGlobalSettingFile
+# DESCRIPTION: Function to get the global settings file. (/etc/sshup.conf)
+# PARAMETERS: none
+#==============================================================================#
+declare -fx fnGetGlobalSettingFile
+
+#=== FUNCTION =================================================================#
+# NAME: fnGetUserSettingFile
+# DESCRIPTION: Function to get the users settings file. (~/.sshup.conf)
+# PARAMETERS: none
+#===============================================================================
+declare -fx fnGetUserSettingFile
+
+#=== FUNCTION =================================================================#
+# NAME: fnGetOption
+# DESCRIPTION: Function to get a single option from the config file.
+# PARAMETER 1: Settings file
+# PARAMETER 2: Section to search
+# PARAMETER 3: Option to find
+# PARAMETER 4: Default value if not found
+# TODO: test, Standardise and declare local local variables and variable names.
+#===============================================================================
+declare -fx fnGetOption
+
+#=== FUNCTION =================================================================#
+# NAME: fnsshupV2Help
+# DESCRIPTION: Function to display usgage information from sshup.usage
+# PARAMETERS: none
+#===============================================================================
+declare -fx fnsshupV2Help
+
+#=== FUNCTION =================================================================#
+# NAME: fnGetOpsSshupV2
+# DESCRIPTION: Function to get options from the commandline.
+# PARAMETERS: none
+# TODO: Optional arguments to unset debug, help, quiet, verbose and wakeup
+#       to overide the settings in /etc/sshup.conf and ~/.sshup.conf.
+#===============================================================================
+declare -fx fnGetOpsSshupV2
+
+#=== FUNCTION =================================================================#
+# NAME: fnDisplayDebugInfo
+# DESCRIPTION: Function to display debug information
+# PARAMETERS: none
+# TODO: 
+#===============================================================================
+declare -fx fnDisplayDebugInfo
+
+#=== FUNCTION =================================================================#
+# NAME: fnAbortScript
+# DESCRIPTION: Function to abort the script
+# PARAMETERS: none
+# TODO: 
+#===============================================================================
+declare -fx fnAbortScript
+
+#=== FUNCTION =================================================================#
+# NAME: fnSetShellOptions
+# DESCRIPTION: Function to setup the bash scripting enviroment
+# PARAMETERS: none
+# TODO: test, Standardise and declare local local variables and variable names.
+#==============================================================================#
+declare -fx fnSetShellOptions
+declare -fx fnErrHandler
+declare -fx _err_trap
+declare -fx _exit_trap
+declare -fx traceback
+
+#trap _exit_trap EXIT
+#trap _err_trap ERR
+#trap _exit_trap "exit ${E_DEBUG_BREAKPOINT}"
+#trap _exit_trap "exit ${E_SHOULD_NEVER_GET_HERE}"
+
+
+declare -x _showed_traceback=f
+
+#--- END OF FUNCTION DECLARATIONS ---------------------------------------------#
+
+#=== FUNCTION =================================================================#
+# NAME: fnAbortScript
+# DESCRIPTION: Function to abort the script
+# PARAMETERS: none
+# TODO: 
+#===============================================================================
+fnAbortScript()
+{
+    kill $$
+}
+
+#=== FUNCTION =================================================================#
+# NAME: fnDebug                                                                #
+# DESCRIPTION: Function to output debug information to stderr.                 #
+# PARAMETERS:   int     debugLevel                                             #
+#               int     lineNo                                                 #
+#               boolean breakpoint                                             #
+#               string  funcName                                               #
+#                                                                              #
+#==============================================================================#
+fnDebug()
+{
+    if [[ $# -ge 1 ]] ; then
+        local -i debugLevel=${1}
+    else
+        local -i debugLevel=255
+    fi
+    
+    if [[ $# -ge 2 ]] ; then
+        local lineNo=${2}
+    else
+        local lineNo=0
+    fi
+    
+    if [[ $# -ge 3 ]] ; then
+        local breakpoint=${3}
+    else
+        local breakpoint=false
+    fi
+    
+    if [[ $# -ge 4 ]] ; then
+        local funcName=${4}
+    else
+        local funcName="main"
+    fi
+    
+    if [[ $# -ge 5 ]] ; then
+        local messDebug=${5}
+    else
+        local messDebug=$(cat)
+    fi
+
+    local -r messPrefix="${BRIGHT}debug -$(basename "$(test -L "$0" && readlink "$0" || echo "$0")") : funcName-${funcName} : lineNo-$lineNo ${NORMAL} -- "
+
+    if [[ ${optDebug} -ge ${debugLevel} ]] ; then
+        echo -e "${messPrefix}" "${messDebug}" 1>&2
+
+        if [[ ${breakpoint} == true ]] ; then
+            echo -e "\n${BLINK}---breakpoint---${NORMAL}\n" 1>&2
+            fnAbortScript
+            return ${E_DEBUG_BREAKPOINT}
+        fi
+    fi
+}
+
+#=== FUNCTION =================================================================#
+# NAME:         fnOutput                                                       #
+#                                                                              #
+# DESCRIPTION:  Function output <stdin> to :-                                  #
+#               1.  If logging enabled, output to logfile.                     #
+#                                                                              #
+#               2.  If not running quietly and not verbose detail, output to   #
+#               <stdout>                                                       #
+#                                                                              #
+#               3.  If running verbosely, output to <stdout>.                  #
+#                                                                              #
+# PARAMETERS:   <stdin> = Text to output.                                      #
+#               ${1}    = Verbose detail (true / false).                       #
+#               ${2}    = Logging (true / false).                              #
+#               ${3}    = Quiet (true / false).                                #
+#               ${4}    = Verbose enabled (true / false).                      #
+#               ${5}    = Logfile.                                             #
+#                                                                              #
+# RETURNS:      nothing.                                                       #
+#                                                                              #
+# TODO:         1.  Format log output with date/time, bin name, etc.           #
+#               2.  Add colour format to logfile                               #
+#               3.  Make paramiters optional. Perhaps use getopts.             #
+#==============================================================================#
+#
+fnOutput ()
+{
+
+    local line=""
+    local -r now="$(date)"
+    local -r logFormat="[$(basename "$0")] [${now}] ${BRIGHT}%s${NORMAL}\n"
+
+    # --- Parse paramiters ----------------------------------------------------#
+    if [ $# -ge 1 ] ; then
+        declare verboseDetail=${1}
+    else
+        declare verboseDetail=false
+    fi
+
+    if [ $# -ge 2 ] ; then
+        declare logging=${2}
+    else
+        declare logging=false
+    fi
+
+    if [ $# -ge 3 ] ; then
+        declare quiet=${3}
+    else
+        declare quiet=false
+    fi
+
+    if [ $# -ge 4 ] ; then
+        declare verbose=${4}
+    else
+        declare verbose=false
+    fi
+
+    if [ $# -ge 5 ] ; then
+        declare logFile=${5}
+    else
+        logging=false
+    fi
+
+    while read line; do
+ 
+        if [ ${logging} == true ] ; then
+            printf "${logFormat}" "${line}" >> ${logFile}
+        fi
+ 
+        if [ ${quiet} == false ] ; then
+            if [ ${verbose} == true ] ; then
+
+                echo -e "${line}" >&2
+
+            else if [ ${verboseDetail} == false ] ; then
+
+                    echo -e "${line}" >&2
+                fi
+            fi
+
+        fi
+    done
+
+    if [[ ${optDebug} -ge ${DBG_LVL_ABORT} ]] ; then 
+        local dbgMess="\n"
+        dbgMess="${dbgMess}${BRIGHT}debug DBG_LVL_ABORT - ${NORMAL} ${FUNCNAME} - ${BRIGHT}lineno = ${NORMAL} $LINENO\n"
+        dbgMess="${dbgMess}${BRIGHT}verboseDetail = ${NORMAL}${verboseDetail}\n"
+        dbgMess="${dbgMess}${BRIGHT}logging = ${NORMAL}${logging}\n"
+        dbgMess="${dbgMess}${BRIGHT}quiet = ${NORMAL}${quiet}\n"
+        dbgMess="${dbgMess}${BRIGHT}verbose = ${NORMAL}${verbose}\n"
+        dbgMess="${dbgMess}${BRIGHT}logFile = ${NORMAL}${logFile}\n"
+        dbgMess="${dbgMess}\n"
+        dbgMess="${dbgMess}$(cat)\n"
+        set -x
+        echo -e "${dbgMess}" | fnDebug ${DBG_LVL_ABORT} ${LINENO} true "${FUNCNAME}"
+        dbRet=$? ; [[ ${dbRet} ]] || exit ${dbRet}
+        set +x
+        echo -e "${BLINK}----------------------I'm HERE ----------------------${NORMAL}" >&2
+        ##zz##dbRet=$? ; [[ ${dbRet} ]] || exit ${dbRet} ##rcs=${PIPESTATUS[*]}; rc=0; for i in ${rcs}; do rc=$(($i > $rc ? $i : $rc)); done ; #if [[ ${rc} -gt 0 ]] ; then exit ${rc} ; fi
+
+#        _exit_trap ${E_SHOULD_NEVER_GET_HERE}
+        exit ${E_SHOULD_NEVER_GET_HERE}
+        return ${E_SHOULD_NEVER_GET_HERE}
+        _exit_trap ${E_SHOULD_NEVER_GET_HERE}
+    fi
+#    if [[ ${optDebug} -ge ${DBG_LVL_OUTPUT} ]] ; then echo "debug (aborting) -  ${FUNCNAME} - lineno = $LINENO - line = ${line}" >&2 ; return 77 ; fi
+}
+
+#=== FUNCTION =================================================================#
+# NAME:         fnIsHostReachable                                              #
+# DESCRIPTION:  Function to check if host is reachable via ping.               #
+# PARAMETERS:   host                                                           #
+# RETURNS:      true / false                                                   #
+# TODO:         1. Assertain the optimal paramiters for ping that give best    #
+#               performance but return correct result over slow networks.      #
+#               Maybe try fast first, but if it fails, try a more thorough     #
+#               ping.                                                          #
+#                                                                              #
+#               2. Merge with fnIsHostConnectable.                             #
+#                                                                              #
+#               3. Standardise passing paramiters and returning the result.    #
+#                                                                              #
+#               4. Add logging / debug output                                  #
+#                                                                              #
+#               5. Build in some standard error handling.                      #
+#                                                                              #
+#==============================================================================#
+fnIsHostReachable ()
+{
+    local hostReachable=false
+    local host="${1}"
+
+    if [ ${optWait} ] ; then
+
+        local chkHostReach=true
+        local -i startTime=${SECONDS}
+        local -i elapseTime=0
+        local wolRet=""
+
+        while [[ ${chkHostReach} == true ]] ; do
+ 
+            if [[ $(fnPingHost "${host}") == 0 ]] ; then
+                dbRet=$? ; [[ ${dbRet} ]] || exit ${dbRet}
+                hostReachable=true
+            else
+                dbRet=$? ; [[ ${dbRet} ]] || exit ${dbRet}
+                hostReachable=false
+            fi
+        
+            if [[ ${hostReachable} == true ]] ; then
+                chkHostReach=false
+#                if [[ ${optDebug} -ge ${DBG_LVL_NETWORK} ]] ; then echo "debug -  ${FUNCNAME} - lineno = $LINENO" >&2 ; fi
+                printf "%s is reachable with ping - ret = %s - time = %i/%i         \r" ${host} ${hostReachable} ${elapseTime} ${optTimeout} | fnOutput true true "${optQuiet}" "${optVerbose}" "/home/carl/sshup.log"
+                dbRet=$? ; [[ ${dbRet} ]] || exit ${dbRet} ##rcs=${PIPESTATUS[*]}; rc=0; for i in ${rcs}; do rc=$(($i > $rc ? $i : $rc)); done
+                ##if [[ ${rc} -gt 0 ]] ; then exit ${rc} ; fi
+            else
+ #               if [[ ${optDebug} -ge ${DBG_LVL_NETWORK} ]] ; then echo "debug -  ${FUNCNAME} - lineno = $LINENO" >&2 ; fi
+                printf "%s is unreachable with ping - ret = %s - time = %i/%i       \r" ${host} ${hostReachable} ${elapseTime} ${optTimeout} | fnOutput true true "${optQuiet}" "${optVerbose}" "/home/carl/sshup.log"
+                dbRet=$? ; [[ ${dbRet} ]] || exit ${dbRet} ##rcs=${PIPESTATUS[*]}; rc=0; for i in ${rcs}; do rc=$(($i > $rc ? $i : $rc)); done
+                #if [[ ${rc} -gt 0 ]] ; then exit ${rc} ; fi
+
+                if [[ ${optWakeup} == true ]] ; then
+ #                   if [[ ${optDebug} -ge ${DBG_LVL_NETWORK} ]] ; then echo "debug -  ${FUNCNAME} - lineno = $LINENO" >&2 ; fi
+                    wolRet="wolRet = $(wakeonlan $(arp -a "${optHost}" | grep -m 1 -o -E '([[:xdigit:]]{1,2}:){5}[[:xdigit:]]{1,2}'))"
+                    printf "%s\n" "${wolRet}" | fnOutput true true "${optQuiet}" "${optVerbose}" "/home/carl/sshup.log" 
+                    dbRet=$? ; [[ ${dbRet} ]] || exit ${dbRet} ##rcs=${PIPESTATUS[*]}; rc=0; for i in ${rcs}; do rc=$(($i > $rc ? $i : $rc)); done
+                    #if [[ ${rc} -gt 0 ]] ; then exit ${rc} ; fi
+#                   if [[ ${optDebug} -ge ${DBG_LVL_ABORT} ]] ; then echo "debug (aborting) -  ${FUNCNAME} - lineno = $LINENO" >&2 ; return 77 ; fi
+                fi
+            fi
+    
+            if [ ! optWait ] ; then
+                chkHostReach=false
+            fi
+    
+            elapseTime=${SECONDS}-${startTime}
+    
+            if [ $elapseTime -gt ${optTimeout} ] ; then
+                chkHostReach=flase
+            fi
+        done
+        printf "\n\n" | fnOutput true true "${optQuiet}" "${optVerbose}" "/home/carl/sshup.log"
+        dbRet=$? ; [[ ${dbRet} ]] || exit ${dbRet} ##rcs=${PIPESTATUS[*]}; rc=0; for i in ${rcs}; do rc=$(($i > $rc ? $i : $rc)); done
+        #if [[ ${rc} -gt 0 ]] ; then exit ${rc} ; fi
+#        if [[ ${optDebug} -ge ${DBG_LVL_OUTPUT} ]] ; then echo "debug (aborting) -  ${FUNCNAME} - lineno = $LINENO" >&2 ; return 77; fi
+        echo -e ${hostReachable}
+    fi
+}
+#=== FUNCTION =================================================================#
+# NAME:         fnIsHostConnectable                                            #
+# DESCRIPTION:  Function to check if host is connectable via ssh.               #
+# PARAMETERS:   host                                                           #
+# RETURNS:      true / false                                                   #
+# TODO:         1. Assertain the optimal paramiters for ssh that give best     #
+#               performance but return correct result over slow networks.      #
+#               Maybe try fast first, but if it fails, try a more thorough     #
+#               ssh.                                                           #
+#                                                                              #
+#               2. Merge with fnIsHostReachable.                               #
+#                                                                              #
+#               3. Standardise passing paramiters and returning the result.    #
+#                                                                              #
+#               4. Add logging / debug output                                  #
+#                                                                              #
+#               5. Build in some standard error handling.                      #
+#                                                                              #
+#==============================================================================#
+fnIsHostConnectable ()
+{
+    local hostReachable=false
+    local -r host="${1}"
+
+    if [ ${optWait} ] ; then
+
+        local chkHostReach=true
+        local -ri startTime=${SECONDS}
+        local -i elapseTime=0
+
+        while [ ${chkHostReach} == true ] ; do
+
+            if [ $(fnSshHost "${host}") == true ] ; then
+                hostReachable=true
+            else
+                hostReachable=false
+            fi
+        
+            if [ ${hostReachable} == true ] ; then
+                chkHostReach=false
+ #               if [[ ${optDebug} -ge ${DBG_LVL_OUTPUT} ]] ; then echo "debug -  ${FUNCNAME} - lineno = $LINENO" >&2 ; fi
+                printf "%s is reachable with ssh - ret = %s - time = %i/%i         \r" ${host} ${hostReachable} ${elapseTime} ${optTimeout} | fnOutput true true "${optQuiet}" "${optVerbose}" "/home/carl/sshup.log"
+                dbRet=$? ; [[ ${dbRet} ]] || exit ${dbRet} ##rcs=${PIPESTATUS[*]}; rc=0; for i in ${rcs}; do rc=$(($i > $rc ? $i : $rc)); done
+                #if [[ ${rc} -gt 0 ]] ; then exit ${rc} ; fi
+            else
+ #               if [[ ${optDebug} -ge ${DBG_LVL_OUTPUT} ]] ; then echo "debug -  ${FUNCNAME} - lineno = $LINENO" >&2 ; fi
+                printf "%s is unreachable with ssh - ret = %s - time = %i/%i       \r" ${host} ${hostReachable} ${elapseTime} ${optTimeout} | fnOutput true true "${optQuiet}" "${optVerbose}" "/home/carl/sshup.log"
+                dbRet=$? ; [[ ${dbRet} ]] || exit ${dbRet} ##rcs=${PIPESTATUS[*]}; rc=0; for i in ${rcs}; do rc=$(($i > $rc ? $i : $rc)); done
+                #if [[ ${rc} -gt 0 ]] ; then exit ${rc} ; fi
+            fi
+#            if [[ ${optDebug} -ge ${DBG_LVL_ABORT} ]] ; then echo "debug (aborting) -  ${FUNCNAME} - lineno = $LINENO" >&2 ; return 77; fi
+    
+            if [ ! optWait ] ; then
+                chkHostReach=false
+            fi
+    
+            elapseTime=${SECONDS}-${startTime}
+    
+            if [ $elapseTime -gt ${optTimeout} ] ; then
+                chkHostReach=flase
+            fi
+        done
+        printf "\n" | fnOutput true true "${optQuiet}" "${optVerbose}" "/home/carl/sshup.log"
+        dbRet=$? ; [[ ${dbRet} ]] || exit ${dbRet} ##rcs=${PIPESTATUS[*]}; rc=0; for i in ${rcs}; do rc=$(($i > $rc ? $i : $rc)); done
+        #if [[ ${rc} -gt 0 ]] ; then exit ${rc} ; fi
+#        if [[ ${optDebug} -ge ${DBG_LVL_OUTPUT} ]] ; then echo "debug (aborting) -  ${FUNCNAME} - lineno = $LINENO" >&2 ; return 77; fi
+        echo -e ${hostReachable}
+    fi
+}
+#=== FUNCTION =================================================================#
+# NAME:         fnIsHostUp                                                     #
+# DESCRIPTION:  Function to check if host is connectable via ssh.              #
+# PARAMETERS:   host                                                           #
+# RETURNS:      true / false                                                   #
+# TODO:         1.  Write the function.  This is ment to be a mearger of       #
+#               fnIsHostReachable & fnIsHostConnectable.                       #
+#                                                                              #
+#               2. Possably connect as part of checking if its available ???   #
+#==============================================================================#
+
+
+#=== FUNCTION =================================================================#
+# NAME: fnPingHost
+# DESCRIPTION: Function to ping a host
+# PARAMETERS: host
+#==============================================================================#
+fnPingHost ()
+{
+    local host="${1}"
+    local ret
+
+#    ret=$(ping -c 1 -n -i 1 -W1 "${host}")
+    ret=$(nmap -sP -PE ${host} 2>&1 | grep "Host is up")
+    res=$?
+
+    printf "Nmap returned %s\n" "${ret}" | fnOutput true true "${optQuiet}" "${optVerbose}" "/home/carl/sshup.log"
+    dbRet=$? ; [[ ${dbRet} ]] || exit ${dbRet} ##rcs=${PIPESTATUS[*]}; rc=0; for i in ${rcs}; do rc=$(($i > $rc ? $i : $rc)); done
+    #if [[ ${rc} -gt 0 ]] ; then exit ${rc} ; fi
+#    if [[ ${optDebug} -ge ${DBG_LVL_OUTPUT} ]] ; then echo "debug (aborting) -  ${FUNCNAME} - lineno = $LINENO" >&2 ; return 77; fi
+    
+    ret=$(nmap -sP -PE -PA23 ${host} 2>&1 | grep "Host is up")
+    res=$?
+
+    printf "Nmap -PA23 returned %s\n" "${ret}" | fnOutput true true "${optQuiet}" "${optVerbose}" "/home/carl/sshup.log"
+    dbRet=$? ; [[ ${dbRet} ]] || exit ${dbRet} ##rcs=${PIPESTATUS[*]}; rc=0; for i in ${rcs}; do rc=$(($i > $rc ? $i : $rc)); done
+    #if [[ ${rc} -gt 0 ]] ; then exit ${rc} ; fi
+#    if [[ ${optDebug} -ge ${DBG_LVL_ABORT} ]] ; then echo "debug (aborting) -  ${FUNCNAME} - lineno = $LINENO" >&2 ; return 77; fi
+    
+    echo -e "${res}"
+}
+
+#=== FUNCTION =================================================================#
+# NAME: fnSshHost
+# DESCRIPTION: Function to ping a host
+# PARAMETERS: host
+#==============================================================================#
+fnSshHost ()
+{
+    local -r host="${1}"
+    local hostup=false
+    local -r ret="$(ssh -o ConnectTimeout=3 ${host} echo "OK" 2>&1 >/tmp/sshup.out;exit)"
+    local -ri res=$?
+        
+    if [ ${res} -eq 0 ] ; then
+        hostup=true
+        local -r result="ssh ${host} is up"
+    else
+        hostup=false
+        local -r result="ssh ${host} is down"
+    fi
+    printf "%s\n%s\n" "${result}" "${ret}" | fnOutput true true "${optQuiet}" "${optVerbose}" "/home/carl/sshup.log"
+    dbRet=$? ; [[ ${dbRet} ]] || exit ${dbRet} ##rcs=${PIPESTATUS[*]}; rc=0; for i in ${rcs}; do rc=$(($i > $rc ? $i : $rc)); done
+    #if [[ ${rc} -gt 0 ]] ; then exit ${rc} ; fi
+#    if [[ ${optDebug} -ge ${DBG_LVL_ABORT} ]] ; then echo "debug (aborting) -  ${FUNCNAME} - lineno = $LINENO" >&2 ; return 77; fi
+    echo -e "${hostup}"
+}
+
+#=== FUNCTION =================================================================#
+# NAME: fnGetGlobalSettingFile
+# DESCRIPTION: Function to get the global settings file. (/etc/sshup.conf)
+# PARAMETERS: none
+#==============================================================================#
+fnGetGlobalSettingFile ()
+{
+    local GSETFILE
+    
+    if [ -f /etc/sshup.conf ] && [ -r /etc/sshup.conf ] ; then
+        GSETFILE="/etc/sshup.conf"
+    else
+        GSETFILE="**NOTREADABLE**"
+    fi
+    printf "Using settings from %s\n" "${GSETFILE}" | fnOutput true true "${optQuiet}" "${optVerbose}" "/home/carl/sshup.log"     
+     dbRet=$? ; [[ ${dbRet} ]] || exit ${dbRet} ##rcs=${PIPESTATUS[*]}; rc=0; for i in ${rcs}; do rc=$(($i > $rc ? $i : $rc)); done
+    #if [[ ${rc} -gt 0 ]] ; then exit ${rc} ; fi
+#   if [[ ${optDebug} -ge ${DBG_LVL_ABORT} ]] ; then echo "debug (aborting) -  ${FUNCNAME} - lineno = $LINENO" >&2 ; return 77; fi
+    echo -e "${GSETFILE}"
+}
+
+#=== FUNCTION =================================================================#
+# NAME: fnGetUserSettingFile
+# DESCRIPTION: Function to get the users settings file. (~/.sshup.conf)
+# PARAMETERS: none
+#===============================================================================
+fnGetUserSettingFile ()
+{
+    local USETFILE
+    
+    if [ -f "${HOME}/.sshup.conf" ] && [ -r "${HOME}/.sshup.conf" ] ; then
+        USETFILE="${HOME}/.sshup.conf"
+    else
+        USETFILE="**NOTREADABLE**"
+    fi
+    printf "Using settings from %s\n" "${USETFILE}" | fnOutput true true "${optQuiet}" "${optVerbose}" "/home/carl/sshup.log"         
+    dbRet=$? ; [[ ${dbRet} ]] || exit ${dbRet} ##rcs=${PIPESTATUS[*]}; rc=0; for i in ${rcs}; do rc=$(($i > $rc ? $i : $rc)); done
+    #if [[ ${rc} -gt 0 ]] ; then exit ${rc} ; fi
+#    if [[ ${optDebug} -ge ${DBG_LVL_ABORT} ]] ; then echo "debug (aborting) -  ${FUNCNAME} - lineno = $LINENO" >&2 ; return 77; fi
+    echo -e "${USETFILE}"
+}
+
+#=== FUNCTION =================================================================#
+# NAME: fnGetOption
+# DESCRIPTION: Function to get a single option from the config file.
+# PARAMETER 1: Settings file
+# PARAMETER 2: Section to search
+# PARAMETER 3: Option to find
+# PARAMETER 4: Default value if not found
+# TODO: test, Standardise and declare local local variables and variable names.
+#===============================================================================
+fnGetOption () 
+{
+    awk -v section="$2" -v variable="$3" -v odefault="$4" '
+        $0 == "[" section "]" { in_section = 1; next }
+        in_section && $1 == variable {
+            $1=""
+            $2=""
+            sub(/^[[:space:]]+/, "")
+            print
+            exit 
+        }
+        in_section && $1 == "" {
+            # we are at a blank line without finding the var in the section
+            print odefault
+            exit
+        }
+    ' "$1"
+}
+
+#=== FUNCTION =================================================================#
+# NAME: fnsshupV2Help
+# DESCRIPTION: Function to display usgage information from sshup.usage
+# PARAMETERS: none
+# TODO:       1. Use paramiters instead of global variables.
+#===============================================================================
+fnsshupV2Help() 
+{
+    local ME
+    local usageFile
+    local line
+    local helpText
+        
+    ME="$(basename "$0")"
+    usageFile="${BINDIR}/${ME}.usage"
+    helpText=$(sed -e "s:\${ME}:${ME}:" -e "s:\${SETFILE}:${GSETFILE}:" "${usageFile}")
+#    if [[ ${optDebug} -ge ${DBG_LVL_OUTPUT} ]] ; then echo "debug -  ${FUNCNAME} - lineno = $LINENO" >&2 ; fi
+    printf "%s\n" "${helpText}"
+    exit 0
+}
+
+#=== FUNCTION =================================================================#
+# NAME: fnGetOpsSshupV2
+# DESCRIPTION: Function to get options from the commandline.
+# PARAMETERS: none
+# TODO: Optional arguments to unset debug, help, quiet, verbose and wakeup
+#       to overide the settings in /etc/sshup.conf and ~/.sshup.conf.
+#===============================================================================
+fnGetOpsSshupV2() 
+{
+    local OPTLIND=1
+    local opt
+    
+    while getopts_long "o:dhqvwcut:" opt \
+        host required_argument \
+        debug required_argument \
+        help no_argument \
+        quiet no_argument \
+        verbose no_argument \
+        wait no_argument \
+        connect no_argument \
+        wakeup no_argument \
+        timeout required_argument "" "$@"
+    do
+        case "$opt" in
+        o|host) 
+            optHost=$OPTLARG;;
+        d|debug)
+            optDebug=$OPTLARG;;
+        h|help)
+            optHelp=true;;
+        q|quiet)
+            optQuiet=true;;
+        v|verbose)
+            optVerbose=true;;
+        w|wait)
+            optWait=true;;
+        c|connect)
+            optConnect=true;;
+        u|wakeup)
+            optWakeup=true;;
+        t|timeout)
+            optTimeout=$OPTLARG;;
+        :)
+            printf | fnOutput true true "${optQuiet}" "${optVerbose}" "/home/carl/sshup.log" '%s: %s\n' "${0##*/}" "$OPTLERR"
+            dbRet=$? ; [[ ${dbRet} ]] || exit ${dbRet} ##rcs=${PIPESTATUS[*]}; rc=0; for i in ${rcs}; do rc=$(($i > $rc ? $i : $rc)); done
+            #if [[ ${rc} -gt 0 ]] ; then exit ${rc} ; fi
+ #           if [[ ${optDebug} -ge ${DBG_LVL_ABORT} ]] ; then echo "debug (aborting) -  ${FUNCNAME} - lineno = $LINENO" >&2 ; return 77; fi
+            optHelp=true;;
+        esac
+    done
+    shift "$(($OPTLIND - 1))"
+}
+
+#=== FUNCTION =================================================================#
+# NAME: fnDisplayDebugInfo
+# DESCRIPTION: Function to display debug information
+# PARAMETERS: none
+# TODO: 
+#===============================================================================
+fnDisplayDebugInfo()
+{
+#    if [[ ${optDebug} -ge ${DBG_LVL_ALL} ]] ; then echo "debug -  ${FUNCNAME} - lineno = $LINENO" >&2 ; fi
+    values_now=( "$( compgen -v)" )                 # Get the currently defined variables
+    #   
+    # Remove all the variables that were allready defined when the script started  
+    #
+    for item in ${initial_variables[@]} ; do
+         values_now=( "${values_now[@]/$item}" )
+    done
+#-------------------------------------------------------------------------------   
+
+
+#-------------------------------------------------------------------------------   
+# Build up array of all the new variables and there values
+#
+#    set +u
+    new_varables=()
+    for item in ${values_now[@]} ; do
+        if [ "${item}" != "" ] ; then
+            new_varables+=( $(printf "%s = %s" "${item}" $(eval echo \$${item})) )             
+        fi
+    done
+#    set -u
+#-------------------------------------------------------------------------------   
+
+    new_varables=($(sort <<<"${new_varables[*]}"))  # Sort the array of new variables
+
+#-------------------------------------------------------------------------------   
+# Display the list of new variables and there values
+#
+    for item in ${new_varables[@]} ; do
+        item=$(echo -e ${item} | sed 's/[\x01-\x1F\x7F]//g')
+        echo -e "${item}\n" | fnDebug ${DBG_LVL_OUTPUT} ${LINENO} false "${FUNCNAME}"
+        dbRet=$? ; [[ ${dbRet} ]] || exit ${dbRet}
+        ##zz##dbRet=$? ; [[ ${dbRet} ]] || exit ${dbRet} ##rcs=${PIPESTATUS[*]}; rc=0; for i in ${rcs}; do rc=$(($i > $rc ? $i : $rc)); done ; #if [[ ${rc} -gt 0 ]] ; then exit ${rc} ; fi
+    done
+#-------------------------------------------------------------------------------   
+
+}
+
+#=== FUNCTION =================================================================#
+# NAME: _exit_trap
+# DESCRIPTION: Exit handler function.
+# PARAMETERS: Exit status.
+# TODO: test, Standardise and declare local local variables and variable names.
+#===============================================================================
+
+_exit_trap()
+{
+  local _ec="$?"
+  if [[ $_ec != 0 && "${_showed_traceback}" != t ]]; then
+    traceback 1
+  fi
+  case $_ec in
+    ${E_DEBUG_BREAKPOINT})
+          echo -e "\nexiting with exit code E_DEBUG_BREAKPOINT(%s)\n" "${_ec}" 1>&2;;
+    ${E_SHOULD_NEVER_GET_HERE})
+          echo -e "\nexiting with exit code E_SHOULD_NEVER_GET_HERE(%s)\n" "${_ec}" 1>&2;;
+    :)
+          echo -e "\nexiting with exit code E_UNKNOWN(%s)\n" "${_ec}" 1>&2;;
+  esac
+#  exit ${_ec}
+}
+
+_err_trap()
+{
+  local _ec="$?"
+  local _cmd="${BASH_COMMAND:-unknown}"
+
+  traceback 1
+  _showed_traceback=t
+
+  echo "The command ${_cmd} exited with exit code ${_ec}." 1>&2
+}
+
+traceback()
+{
+  # Hide the traceback() call.
+  local -i start=$(( ${1:-0} + 1 ))
+  local -i end=${#BASH_SOURCE[@]}
+  local -i i=0
+  local -i j=0
+
+  echo "Traceback (last called is first):" 1>&2
+  for ((i=${start}; i < ${end}; i++)); do
+    j=$(( $i - 1 ))
+    local function="${FUNCNAME[$i]}"
+    local file="${BASH_SOURCE[$i]}"
+    local line="${BASH_LINENO[$j]}"
+    echo "     ${function}() in ${file}:${line}" 1>&2
+  done
+}
+
+#=== FUNCTION =================================================================#
+# NAME: fnSetShellOptions
+# DESCRIPTION: Function to setup the bash scripting enviroment
+# PARAMETERS: none
+# TODO: test, Standardise and declare local local variables and variable names.
+#===============================================================================
+
+fnSetShellOptions()
+{
+    set -o nounset
+    set -o pipefail
+    set -o errtrace
+    set -o errexit
+    set -o noglob
+    set -o allexport
+}
+
+#
+# If theis script is not sourced and paramiters have been passed, then call the#
+# function passed (${1}) with the paramiters passed (if any).                  #
+#                                                                              #
+
+if [[ "${BASH_SOURCE[0]}" = "${0}" ]] ; then
+    if [ $# -gt 0 ] ; then
+        declare cmd="${@}"
+        shift
+        echo "calling ${cmd}" | fnOutput true true "${optQuiet}" "${optVerbose}" "/home/carl/sshup.log"
+        dbRet=$? ; [[ ${dbRet} ]] || exit ${dbRet} ##rcs=${PIPESTATUS[*]}; rc=0; for i in ${rcs}; do rc=$(($i > $rc ? $i : $rc)); done
+        #if [[ ${rc} -gt 0 ]] ; then exit ${rc} ; fi
+        echo -- | ${cmd}
+#        if [[ ${optDebug} -ge ${DBG_LVL_ABORT} ]] ; then echo "debug (aborting) -  ${FUNCNAME} - lineno = $LINENO" >&2 ; return 77; fi        
+    fi
+fi
